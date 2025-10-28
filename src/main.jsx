@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import AppRouter from './router/AppRouter.jsx'
-import './styles/themes.css'
+import AppRouter from './app/routes/Router.jsx'
+import './shared/styles/themes.css'
 import { StrictMode } from 'react'
 
 
