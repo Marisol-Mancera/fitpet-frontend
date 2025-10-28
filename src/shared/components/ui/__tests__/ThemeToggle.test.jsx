@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import ThemeToggle from '../../ui/ThemeToggle.jsx';
+import ThemeToggle from '../ThemeToggle.jsx';
 import '@testing-library/jest-dom'; 
 // Función de simulación (Mock) para window.matchMedia
 const mockMatchMedia = (matches) => () => ({
