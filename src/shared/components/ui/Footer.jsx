@@ -1,22 +1,24 @@
 import React from 'react'
-import Logo from '../../assets/logo.svg'
+// 💡 CORRECCIÓN: Volvemos a ruta relativa desde la ubicación del archivo
+import Logo from '../../../assets/logo.svg'
 
 export default function Footer() {
   return (
     <footer
       role="contentinfo"
       className="
-        w-full border-t border-fp-neutral-300
-        bg-fp-neutral-100 text-fp-text-700
-        dark:bg-[#0E1216] dark:text-fp-text-700
-      "
+        w-full border-t 
+        bg-fp-neutral-100 
+        dark:bg-[var(--bg-app)] 
+        text-[var(--text-base)]
+        border-[var(--border-soft)]
+      "
     >
       <div className="mx-auto max-w-screen-lg px-4 py-6 sm:py-8">
         {/* fila principal */}
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
           {/* Brand / Logo */}
           <div className="flex items-center gap-3">
-            {/* Tu logo: deja este <img>; solo cambia el archivo de assets si lo necesitas */}
             <img
               src={Logo}
               alt="FitPet"
@@ -27,7 +29,7 @@ export default function Footer() {
           {/* Navegación mínima */}
           <nav aria-label="Footer links" className="flex items-center gap-6">
             <a
-              href="/contacto"
+              href="/contacto" // (temporal, luego cambiaremos por <Link>)
               className="text-sm hover:underline hover:text-fp-primary-600"
             >
               Contacto
@@ -36,7 +38,7 @@ export default function Footer() {
         </div>
 
         {/* línea divisoria */}
-        <div className="my-4 h-px w-full bg-fp-neutral-300" />
+        <div className="my-4 h-px w-full bg-[var(--border-soft)]" />
 
         {/* contacto + derechos */}
         <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -51,3 +53,5 @@ export default function Footer() {
     </footer>
   )
 }
+
+

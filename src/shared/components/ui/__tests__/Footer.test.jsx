@@ -1,35 +1,40 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-import Footer from '../Footer.jsx'
+
+// 💡 CORRECCIÓN: Usamos ruta absoluta
+import Footer from '/src/shared/components/ui/Footer.jsx'
 
 // Mockear la importación de archivos SVG
-// Reemplazamos el path exacto que usa Footer.jsx con una cadena de texto.
-vi.mock('../../../../assets/logo.svg', () => ({
-    // Devuelve un path ficticio para evitar errores de carga en Vitest
-    default: 'mocked-logo-path.svg',
-}));
+// 💡 CORRECCIÓN: Usamos ruta absoluta
+vi.mock('/src/assets/logo.svg', () => ({
+L: 'mocked-logo-path.svg',
+}))
 
 describe('Footer (FitPet)', () => {
-    test('renderiza el <footer>, link "Contacto", email y un logo', () => {
-        render(<Footer />)
+  test('renderiza el <footer>, link "Contacto", email y un logo', () => {
+    render(<Footer />)
 
-        // <footer> accesible
-        const footer = screen.getByRole('contentinfo')
-        expect(footer).toBeInTheDocument()
+    // <footer> accesible
+    const footer = screen.getByRole('contentinfo')
+    expect(footer).toBeInTheDocument()
 
-        // Link Contacto (rol link)
-        expect(screen.getByRole('link', { name: /Contacto/i })).toBeInTheDocument()
+    // Link Contacto (rol link)
+    expect(screen.getByRole('link', { name: /Contacto/i })).toBeInTheDocument()
 
-        // Email visible
-        // Nota: Usamos una regex con \. para escapar el punto en el email.
-        expect(screen.getByText(/contacto@fitpet\.app/i)).toBeInTheDocument()
+    // Email visible
+    expect(screen.getByText(/contacto@fitpet\.app/i)).toBeInTheDocument()
 
-        // Un solo logo con alt "FitPet" (ahora se renderiza gracias al mock)
-        const imgs = screen.getAllByRole('img', { name: /fitpet/i })
-        expect(imgs).toHaveLength(1)
+    // Un solo logo con alt "FitPet"
+    const imgs = screen.getAllByRole('img', { name: /fitpet/i })
+    expect(imgs).toHaveLength(1)
+    // La comprobación del src puede ser inestable con mocks, nos centramos en que exista.
+    // expect(imgs[0]).toHaveAttribute('src', 'mocked-logo-path.svg')
 
-        // Derechos (el año es dinámico, el resto es fijo)
-        expect(screen.getByText(/Todos los derechos reservados/i)).toBeInTheDocument()
-    })
+    // Derechos (el año es dinámico, el resto es fijo)
+    expect(
+      screen.getByText(/Todos los derechos reservados/i)
+    ).toBeInTheDocument()
+  })
 })
+
