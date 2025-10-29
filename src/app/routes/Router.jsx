@@ -1,13 +1,14 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import AppLayout from '../../shared/layout/AppLayout.jsx'
-import LoginPage from '../../pages/auth/LoginPage.jsx'
+import CredentialsLayout from '../../shared/layout/CredentialsLayout.jsx'
+import LoginPage from '../../features/auth/pages/LoginPage.jsx'
 
 const router = createBrowserRouter([
   {
-    element: <AppLayout />,
+    element: <CredentialsLayout />,
     children: [
       { path: '/', element: <LoginPage /> },
       { path: '/login', element: <LoginPage /> },
+      // cuando añadamos /register, irá aquí también
     ],
   },
 ])
