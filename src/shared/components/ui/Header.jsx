@@ -8,7 +8,7 @@ export default function Header() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // placeholder de auth: token en localStorage (luego lo sustituimos por Redux)
+  // placeholder de auth: token en localStorage (luego sustituir por Redux)
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => !!localStorage.getItem('token')
   )

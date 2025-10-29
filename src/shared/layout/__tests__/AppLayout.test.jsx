@@ -2,30 +2,24 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
-// ANTES:
-// import AppLayout from '../AppLayout.jsx'
-// DESPUÉS (Corrección de ruta): Usamos ruta absoluta
+
 import AppLayout from '/src/shared/layout/AppLayout.jsx'
 
 // --- Mocks ---
-
-// Mock de Header (Regla 10: No probar dependencias)
-// Usamos un mock simple para verificar que se renderiza.
+// Mock de Header
 vi.mock('/src/shared/components/ui/Header.jsx', () => ({
-  default: () => <header data-testid="header-mock">Header Mock</header>,
+  default: () => <header data-testid="header-mock">Header</header>,
 }))
 
-// 2. Mock de Footer
+// Mock de Footer
 vi.mock('/src/shared/components/ui/Footer.jsx', () => ({
-  default: () => <footer data-testid="footer-mock">Footer Mock</footer>,
+  default: () => <footer data-testid="footer-mock">Footer</footer>,
 }))
 
-// Mock de themes.css (para evitar errores de importación en Vitest)
-vi.mock('/src/styles/themes.css', () => ({
-  default: '',
-}))
+// Mock de themes (para la importación en AppLayout)
+vi.mock('/src/styles/themes.css', () => ({}))
 
-//Mock de matchMedia (dependencia indirecta vía Header -> ThemeToggle)
+// Mock de matchMedia (usado por componentes internos como ThemeToggle)
 const mockMatchMedia = (matches) => () => ({
   matches,
   media: '(prefers-color-scheme: dark)',
@@ -36,44 +30,38 @@ const mockMatchMedia = (matches) => () => ({
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
 })
+// --- Fin Mocks ---
 
-// --- Tests ---
-
-describe('AppLayout', () => {
+describe('AppLayout (FitPet)', () => {
   beforeEach(() => {
-    // Limpieza estándar de tests
-    localStorage.clear()
-    document.documentElement.classList.remove('dark')
+    // Aseguramos que matchMedia esté mockeado antes de cada test
     window.matchMedia = vi.fn(mockMatchMedia(false))
   })
 
-  test('renderiza Header, Footer y el contenido del Outlet', () => {
-    // Contenido ficticio que simula el <Outlet />
-    const DUMMY_PAGE_TEXT = 'Contenido de la página (Outlet)'
-    const DummyPage = () => <h1>{DUMMY_PAGE_TEXT}</h1>
+  test('renderiza Header, Footer y el Outlet (página)', () => {
+    // Página de prueba que simula el <Outlet>
+    const TestPage = () => <h1>Página de Prueba</h1>
 
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
-          {/* Definimos una ruta que usa AppLayout */}
+          {/* El AppLayout envuelve la ruta */}
           <Route element={<AppLayout />}>
-            {/* El Outlet renderizará DummyPage en la ruta '/' */}
-            <Route path="/" element={<DummyPage />} />
+            <Route path="/" element={<TestPage />} />
           </Route>
         </Routes>
       </MemoryRouter>
     )
 
-    // Verificar que el Header (mock) está presente
+    // Verifica que los mocks de Header y Footer están
     expect(screen.getByTestId('header-mock')).toBeInTheDocument()
-    expect(screen.getByText('Header Mock')).toBeInTheDocument()
-
-    // Verificar que el Footer (mock) está presente
     expect(screen.getByTestId('footer-mock')).toBeInTheDocument()
-    expect(screen.getByText('Footer Mock')).toBeInTheDocument()
 
-    // Verificar que el contenido del Outlet (DummyPage) está presente
-    expect(screen.getByRole('heading', { name: DUMMY_PAGE_TEXT })).toBeInTheDocument()
+    // Verifica que el contenido del Outlet (TestPage) está
+    expect(
+      screen.getByRole('heading', { name: 'Página de Prueba' })
+    ).toBeInTheDocument()
   })
 })
+
 
