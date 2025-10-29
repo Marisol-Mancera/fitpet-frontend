@@ -1,149 +1,236 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-
+// 💡 (FIX) Cambiamos a ruta absoluta para el preview
 import Logo from '/src/assets/logo.svg'
 
 /**
- * Página de inicio de sesión.
- * Renderizada por el router dentro de CredentialsLayout.
+ * Validador simple de email (regex)
+ */
+const isEmailValid = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+/**
+ * Página de Login
+ * Refactorizada para incluir validación local y llamada fetch real a la API.
  */
 export default function LoginPage() {
   const navigate = useNavigate()
-
-  // --- Estado Local (Reemplaza Redux temporalmente) ---
+  const [searchParams] = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Limpia el error si el usuario empieza a escribir de nuevo
-  useEffect(() => {
-    if (email || password) setError(null)
-  }, [email, password])
+  // apiError: Para errores del servidor (ej. "Credenciales inválidas")
+  const [apiError, setApiError] = useState(null)
+  // formErrors: Para errores del cliente (ej. "Campo requerido")
+  const [formErrors, setFormErrors] = useState({})
 
-  // --- Simulación de Submit (Reemplaza Dispatch) ---
+  // Muestra un mensaje de éxito si venimos de /register
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  useEffect(() => {
+    if (searchParams.get('registered') === 'true') {
+      setShowSuccessMessage(true)
+      // Limpia el parámetro de la URL
+      navigate('/login', { replace: true })
+    }
+  }, [searchParams, navigate])
+
+  /**
+   * Validación del formulario del lado del cliente
+   */
+  const validateForm = () => {
+    const errors = {}
+    if (!email) {
+      errors.email = 'El email es obligatorio.'
+    } else if (!isEmailValid(email)) {
+      errors.email = 'El formato del email no es válido.'
+    }
+    if (!password) {
+      errors.password = 'La contraseña es obligatoria.'
+    }
+    setFormErrors(errors)
+    // Devuelve true si no hay errores
+    return Object.keys(errors).length === 0
+  }
+
+  /**
+   * Manejo de envío con fetch real
+   */
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (isLoading) return
-    
-    // Validación simple
-    if (!email || !password) {
-      setError('Email y contraseña son obligatorios.')
+    // Limpiar errores previos
+    setApiError(null)
+    setFormErrors({})
+
+    // Validar campos del cliente
+    if (!validateForm()) {
       return
     }
 
     setIsLoading(true)
-    setError(null)
 
-    // Simulación de llamada a la API (Backend HU-1)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // Llamada real a la API (endpoint del anexo)
+    try {
+      const response = await fetch('/api/v1/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // El backend espera 'username' (que es el email) y 'password'
+        body: JSON.stringify({ username: email, password }),
+      })
 
-    // Lógica de autenticación (temporal)
-    if (email === 'test@fitpet.app' && password === 'password123') {
-      // Guardamos token (Placeholder, igual que en Header.jsx)
-      localStorage.setItem('token', 'fake-jwt-token-from-login')
-      navigate('/') // Redirige a la home
-    } else {
-      setError('Credenciales incorrectas. Inténtalo de nuevo.')
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Usamos el mensaje del backend (ej. "Invalid credentials")
+        setApiError(data.message || 'Error al iniciar sesión.')
+        return
+      }
+
+      // Éxito (201 Created)
+      if (data.accessToken) {
+        localStorage.setItem('token', data.accessToken)
+        navigate('/')
+      } else {
+        setApiError('Respuesta inesperada del servidor.')
+      }
+    } catch (err) {
+      console.error('Error en fetch:', err)
+      setApiError('No se pudo conectar al servidor. Inténtalo más tarde.')
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
-    <div className="flex w-full flex-col items-center">
-      <img
-        src={Logo}
-        alt="FitPet"
-        className="mb-6 h-16 w-auto"
-      />
-      <h1 className="mb-6 text-3xl font-bold text-[var(--text-title)]">
-        Bienvenido
-      </h1>
+    <div className="mx-auto w-full max-w-sm lg:w-96">
+      {/* Logo y Título */}
+      <div>
+        <img className="mx-auto h-12 w-auto" src={Logo} alt="FitPet" />
+        <h2 className="mt-8 text-center text-3xl font-bold tracking-tight text-[var(--text-title)]">
+          Inicia sesión
+        </h2>
+        <p className="mt-2 text-center text-sm text-[var(--text-base)]">
+          O{' '}
+          <Link
+            to="/register"
+            className="font-medium text-[var(--fp-primary-500)] hover:text-[var(--fp-primary-600)]"
+          >
+            regístrate si eres nuevo
+          </Link>
+        </p>
+      </div>
 
-      {/* Contenedor del formulario */}
-      <form
-        onSubmit={handleSubmit}
-        className="w-full rounded-lg border border-[var(--border-soft)] bg-[var(--bg-surface)] p-6 shadow-sm"
-        noValidate
-      >
-        <div className="flex flex-col gap-5">
-          {/* --- Campo Email (Adaptado de Input) --- */}
+      <div className="mt-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Mensaje de éxito (si vienes de registro) */}
+          {showSuccessMessage && (
+            <div className="rounded-md border border-[var(--fp-success)] bg-green-50 p-4">
+              <p className="text-sm font-medium text-green-800">
+                ¡Registro completado! Por favor, inicia sesión.
+              </p>
+            </div>
+          )}
+
+          {/* Mensaje de error de la API */}
+          {apiError && (
+            <div className="rounded-md border border-[var(--fp-error)] bg-red-50 p-4">
+              <p className="text-sm font-medium text-red-800">{apiError}</p>
+            </div>
+          )}
+
+          {/* Campo Email */}
           <div>
             <label
               htmlFor="email"
-              className="mb-1.5 block text-sm font-medium text-[var(--text-title)]"
+              className="block text-sm font-medium leading-6 text-[var(--text-base)]"
             >
               Email
             </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <Mail size={18} />
+            <div className="relative mt-2">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <Mail
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
               </span>
               <input
-                type="email"
                 id="email"
                 name="email"
+                type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                className="w-full rounded-md border border-[var(--border-soft)] bg-[var(--bg-app)] py-2.5 pl-10 pr-3 text-[var(--text-base)] shadow-sm focus:border-[var(--fp-primary-500)] focus:outline-none focus:ring-1 focus:ring-[var(--fp-primary-500)]"
+                className={`block w-full rounded-md border-0 py-2.5 pl-10 text-[var(--text-title)] shadow-sm ring-1 ring-inset ring-[var(--border-soft)] placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[var(--fp-primary-600)] sm:text-sm sm:leading-6 ${
+                  formErrors.email
+                    ? 'ring-[var(--fp-error)] focus:ring-[var(--fp-error)]'
+                    : ''
+                }`}
               />
             </div>
+            {/* Mensaje de error del campo Email */}
+            {formErrors.email && (
+              <p className="mt-2 text-sm text-[var(--fp-error)]" id="email-error">
+                {formErrors.email}
+              </p>
+            )}
           </div>
 
-          {/* --- Campo Contraseña (Adaptado de Input) --- */}
+          {/* Campo Contraseña */}
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-sm font-medium text-[var(--text-title)]"
+              className="block text-sm font-medium leading-6 text-[var(--text-base)]"
             >
               Contraseña
             </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <Lock size={18} />
+            <div className="relative mt-2">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <Lock
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
               </span>
               <input
-                type="password"
                 id="password"
                 name="password"
+                type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;"
-                className="w-full rounded-md border border-[var(--border-soft)] bg-[var(--bg-app)] py-2.5 pl-10 pr-3 text-[var(--text-base)] shadow-sm focus:border-[var(--fp-primary-500)] focus:outline-none focus:ring-1 focus:ring-[var(--fp-primary-500)]"
+                className={`block w-full rounded-md border-0 py-2.5 pl-10 text-[var(--text-title)] shadow-sm ring-1 ring-inset ring-[var(--border-soft)] placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[var(--fp-primary-600)] sm:text-sm sm:leading-6 ${
+                  formErrors.password
+                    ? 'ring-[var(--fp-error)] focus:ring-[var(--fp-error)]'
+                    : ''
+                }`}
               />
             </div>
+            {/* Mensaje de error del campo Contraseña */}
+            {formErrors.password && (
+              <p
+                className="mt-2 text-sm text-[var(--fp-error)]"
+                id="password-error"
+              >
+                {formErrors.password}
+              </p>
+            )}
           </div>
 
-          {/* --- Error (Adaptado de FormError) --- */}
-          {error && (
-            <p
-              role="alert"
-              className="-mt-2 text-center text-sm text-[var(--fp-error)]"
+          {/* Botón Submit */}
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full justify-center rounded-md bg-[var(--fp-primary-600)] px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-[var(--fp-primary-700)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--fp-primary-500)] disabled:opacity-50"
             >
-              {error}
-            </p>
-          )}
-
-          {/* --- Botones --- */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full rounded-lg bg-[var(--fp-primary-600)] py-2.5 text-base font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[var(--fp-primary-700)] focus:outline-none focus:ring-2 focus:ring-[var(--fp-primary-500)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isLoading ? 'Iniciando sesión...' : 'Entrar'}
-          </button>
-
-          <Link
-            to="/register"
-            className="w-full rounded-lg border border-[var(--fp-primary-600)] py-2.5 text-center text-base font-semibold text-[var(--fp-primary-600)] shadow-sm transition-colors duration-200 hover:bg-[var(--fp-primary-600)] hover:text-white focus:outline-none focus:ring-2 focus:ring-[var(--fp-primary-500)] focus:ring-offset-2"
-          >
-            Crear una cuenta
-          </Link>
-        </div>
-      </form>
+              {isLoading ? 'Iniciando sesión...' : 'Entrar'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

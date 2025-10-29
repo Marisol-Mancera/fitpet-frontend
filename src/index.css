@@ -3,4 +3,4 @@
 @tailwind utilities;
 
 /* Importa tu tema con variables */
-@import './styles/theme.css';
+@import './styles/themes.css';
