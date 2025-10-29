@@ -1,5 +1,4 @@
 import React from 'react'
-// 💡 CORRECCIÓN: Volvemos a ruta relativa desde la ubicación del archivo
 import Logo from '../../../assets/logo.svg'
 
 export default function Footer() {
