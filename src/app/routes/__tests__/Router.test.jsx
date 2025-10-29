@@ -6,8 +6,11 @@ import CredentialsLayout from '../../../shared/layout/CredentialsLayout.jsx'
 
 // Mock fino de LoginPage para no arrastrar dependencias
 const MOCK_LOGIN_TEXT = 'Página de Login Mock'
+
+// NOTA IMPORTANTE: Esta ruta debe ser la correcta, según confirmamos antes:
+// 'src/features/auth/pages/LoginPage.jsx'
 vi.mock('../../../features/auth/pages/LoginPage.jsx', () => ({
-  default: () => <div>{MOCK_LOGIN_TEXT}</div>,
+  default: () => <div data-testid="login-page-mock">{MOCK_LOGIN_TEXT}</div>,
 }))
 
 const mockMatchMedia = (matches) => () => ({
@@ -20,6 +23,10 @@ const mockMatchMedia = (matches) => () => ({
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
 })
+
+// Importamos el componente mockeado
+import LoginPage from '../../../features/auth/pages/LoginPage.jsx'
+
 
 describe('Router con CredentialsLayout', () => {
   beforeEach(() => {
@@ -34,8 +41,9 @@ describe('Router con CredentialsLayout', () => {
         {
           element: <CredentialsLayout />,
           children: [
-            { path: '/', element: <div>{MOCK_LOGIN_TEXT}</div> },
-            { path: '/login', element: <div>{MOCK_LOGIN_TEXT}</div> },
+            // ✅ CORRECCIÓN: Usar el componente LoginPage, que es nuestro mock.
+            { path: '/', element: <LoginPage /> },
+            { path: '/login', element: <LoginPage /> },
           ],
         },
       ],
@@ -52,8 +60,9 @@ describe('Router con CredentialsLayout', () => {
         {
           element: <CredentialsLayout />,
           children: [
-            { path: '/', element: <div>{MOCK_LOGIN_TEXT}</div> },
-            { path: '/login', element: <div>{MOCK_LOGIN_TEXT}</div> },
+            // ✅ CORRECCIÓN: Usar el componente LoginPage, que es nuestro mock.
+            { path: '/', element: <LoginPage /> },
+            { path: '/login', element: <LoginPage /> },
           ],
         },
       ],

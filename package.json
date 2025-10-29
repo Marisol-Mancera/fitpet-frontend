@@ -13,6 +13,10 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.1.0",
+    "@fortawesome/free-brands-svg-icons": "^7.1.0",
+    "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
