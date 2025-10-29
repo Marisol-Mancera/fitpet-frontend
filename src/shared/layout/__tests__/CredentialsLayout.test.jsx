@@ -43,7 +43,7 @@ describe('CredentialsLayout', () => {
 
     render(<RouterProvider router={router} />)
 
-    // Verificamos que el contenido del Outlet (DummyChildPage) se renderiza
+    // Verificamos que el contenido del Outlet  se renderiza
     expect(screen.getByText('Auth Shell')).toBeInTheDocument()
   })
 })
