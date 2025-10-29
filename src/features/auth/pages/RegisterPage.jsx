@@ -1,32 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Lock, Mail, User } from 'lucide-react'
-// 💡 (FIX) Cambiamos a ruta absoluta para el preview
+import { Lock, Mail } from 'lucide-react'
 import Logo from '/src/assets/logo.svg'
-
-// --- Helpers de Validación (basado en el anexo de la HU) ---
-
-/**
- * Validador simple de email (regex)
- */
-function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
-
-/**
- * Validador de contraseña 
- * Mínimo 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.
- */
-function isStrongPassword(password) {
-  const minLength = 8
-  const hasUpperCase = /[A-Z]/.test(password)
-  const hasNumber = /[0-9]/.test(password)
-  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-  return (
-    password.length >= minLength && hasUpperCase && hasNumber && hasSymbol
-  )
-}
+import { isValidEmail, isStrongPassword } from '/src/features/auth/utils/validation.js'
 
 /**
  * Página de Registro
@@ -275,5 +251,4 @@ export default function RegisterPage() {
     </div>
   )
 }
-
 
