@@ -4,7 +4,7 @@ import CredentialsLayout from '/src/shared/layout/CredentialsLayout.jsx'
 import HomePage from '/src/features/home/HomePage.jsx'
 import RegisterPage from '/src/features/auth/pages/RegisterPage.jsx'
 import LoginPage from '/src/features/auth/pages/LoginPage.jsx'
-import PrivateRoute from '../shared/components/auth/PrivateRoute'
+import PrivateRoute from '../../shared/components/auth/PrivateRoute.jsx'
 
 /**
  * Definición del Router de la aplicación FitPet.
@@ -18,7 +18,9 @@ const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { path: '/', element: <HomePage /> },
-      // { path: '/admin', element: <AdminPage /> }, // codigo a crear
+      // Rutas protegidas (requieren autenticación)
+      // { path: '/admin', element: <PrivateRoute><AdminPage /></PrivateRoute> },
+      // { path: '/mascotas', element: <PrivateRoute><MascotasPage /></PrivateRoute> },
     ],
   },
   {
