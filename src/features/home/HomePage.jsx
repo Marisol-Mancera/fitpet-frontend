@@ -11,7 +11,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center my-12">
         <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight leading-none">
-          ¡Hola, <span className="text-fp-mint-600">dueño de mascota</span>!
+          Hola, <span className="text-fp-mint-600">dueño de mascota</span>!
         </h1>
         <p className="max-w-4xl mx-auto text-xl text-gray-600 px-4 mb-8">
           Tu dashboard de bienestar personalizado. Aquí controlas la vida activa y saludable de tu compañero peludo.
