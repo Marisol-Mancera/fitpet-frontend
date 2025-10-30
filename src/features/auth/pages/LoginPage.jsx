@@ -2,18 +2,12 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import Logo from "../../../shared/assets/logo.svg"
-
-/**
- * Valida si un email tiene formato correcto
- */
-const isValidEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return regex.test(email)
-}
+import { login, saveToken } from '../services/authService'
+import { isValidEmail } from '../utils/validation'
 
 /**
  * Página de Login
- * Maneja la validación local y la llamada a la API de token.
+ * Maneja la validación local y la autenticación mediante authService.
  */
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -72,29 +66,12 @@ export default function LoginPage() {
 
     setIsLoading(true)
 
-    // Llamar a la API (endpoint del anexo HU2)
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: email, password }),
-      })
-
-      // Manejar respuestas
-      if (response.status === 201) {
-        const data = await response.json()
-        localStorage.setItem('token', data.accessToken)
-        window.dispatchEvent(new Event('storage'))
-        navigate('/')
-      } else {
-        const errorData = await response.json()
-        setApiError(errorData.message || 'Email o contraseña incorrectos')
-      }
+      const data = await login(email, password)
+      saveToken(data.accessToken)
+      navigate('/')
     } catch (err) {
-      console.error('Error de red al loguear:', err)
-      setApiError('Error de conexión. No se pudo contactar al servidor.')
+      setApiError(err.message)
     } finally {
       setIsLoading(false)
     }
@@ -111,7 +88,7 @@ export default function LoginPage() {
       {/* Encabezado y Logo */}
       <div className="text-center">
         <img
-          className="mx-auto h-50 w-auto"
+          className="mx-auto h-32 w-auto"
           src={Logo}
           alt="FitPet Logo"
         />

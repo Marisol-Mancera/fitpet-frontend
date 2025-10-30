@@ -50,7 +50,7 @@ export default function Header() {
             gridTemplateColumns: 'auto 1fr auto',
             alignItems: 'center',
             gap: '1rem',
-            height: '5rem'
+            height: '7rem'
           }}
         >
           
@@ -63,7 +63,7 @@ export default function Header() {
               <img
                 src={Logo}
                 alt="FitPet"
-                className="h-16 sm:h-20 w-auto transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(122,217,192,0.6)]"
+                className="h-20 sm:h-28 w-auto transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_10px_rgba(122,217,192,0.6)]"
               />
             </Link>
           </div>

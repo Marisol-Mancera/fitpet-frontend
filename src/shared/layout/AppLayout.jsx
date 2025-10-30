@@ -12,7 +12,7 @@ export default function AppLayout() {
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
 
-      <main className="grow pt-24">
+      <main className="grow pt-28">
         <Outlet />
       </main>
 

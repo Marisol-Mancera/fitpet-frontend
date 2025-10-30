@@ -2,30 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import Logo from "../../../shared/assets/logo.svg"
-
-/**
- * Valida si un email tiene formato correcto
- */
-const isValidEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return regex.test(email)
-}
-
-/**
- * Valida si una contraseña es segura
- * Debe tener: 8+ caracteres, 1 mayúscula, 1 número y 1 símbolo
- */
-const isStrongPassword = (password) => {
-  const hasMinLength = password.length >= 8
-  const hasUpperCase = /[A-Z]/.test(password)
-  const hasNumber = /[0-9]/.test(password)
-  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-  return hasMinLength && hasUpperCase && hasNumber && hasSymbol
-}
+import { register } from '/src/features/auth/services/authService'
+import { isValidEmail, isStrongPassword } from '../utils/validation'
 
 /**
  * Página de Registro
- * Maneja la validación local y la llamada a la API de registro.
+ * Maneja la validación local y el registro mediante authService.
  */
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -83,34 +65,11 @@ export default function RegisterPage() {
 
     setIsLoading(true)
 
-    // Llamar a la API
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/registro', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      // Manejar respuestas
-      if (response.status === 201) {
-        navigate('/login?registered=true')
-      } else {
-        const errorData = await response.json()
-        if (response.status === 409) {
-          setApiError(errorData.message || 'El email ya está registrado')
-        } else if (response.status === 400) {
-          setApiError(
-            errorData.message || 'Error de validación. Revisa la contraseña.'
-          )
-        } else {
-          setApiError('Ha ocurrido un error inesperado. Inténtalo de nuevo.')
-        }
-      }
+      await register(email, password)
+      navigate('/login?registered=true')
     } catch (err) {
-      console.error('Error de red al registrar:', err)
-      setApiError('Error de conexión. No se pudo contactar al servidor.')
+      setApiError(err.message)
     } finally {
       setIsLoading(false)
     }
@@ -127,7 +86,7 @@ export default function RegisterPage() {
       {/* Encabezado y Logo */}
       <div className="text-center">
         <img
-          className="mx-auto h-50 w-auto"
+          className="mx-auto h-32 w-auto"
           src={Logo}
           alt="FitPet Logo"
         />
