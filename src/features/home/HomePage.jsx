@@ -1,98 +1,93 @@
-import React from 'react'
-// 💡 (FIX) Usamos lucide-react (según informe) en lugar de react-icons
-import { Dog, Activity, ClipboardPenLine } from 'lucide-react'
+import { Activity, ClipboardPenLine, Zap, Heart } from 'lucide-react'
 
 /**
- * Página de inicio (Landing/Dashboard) que se muestra después de iniciar sesión.
- * Se renderiza dentro de AppLayout.
+ * Página principal del dashboard de FitPet.
+ * Diseño inspirado en Margarita con grid 2x2 y colores FitPet.
  */
-function HomePage() {
+export default function HomePage() {
   return (
-    // AppLayout ya proporciona el fondo y el padding base.
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 my-8">
-        {/* Tarjeta 1: Tu compañero */}
-        <div className="transform rounded-2xl bg-[var(--bg-surface)] p-8 shadow-lg ring-1 ring-[var(--border-soft)] transition duration-300 ease-in-out hover:scale-[1.03]">
-          <div className="flex justify-start mb-4">
-            <Dog className="h-10 w-10 text-[var(--fp-primary-600)]" />
-          </div>
-          <h3 className="mb-4 text-2xl font-bold text-[var(--text-title)]">
-            Tu compañero, conectado.
-          </h3>
-          <p className="text-lg text-[var(--text-base)]">
-            Mantén un registro digital de la salud, vacunas y citas de tu
-            mascota, accesible en cualquier momento.
-          </p>
-        </div>
-
-        {/* Tarjeta 2: Bienestar Proactivo */}
-        <div className="transform rounded-2xl border-4 border-[var(--fp-warm-500)] bg-[var(--bg-surface)] p-8 shadow-2xl ring-1 ring-[var(--border-soft)] transition duration-300 ease-in-out hover:scale-[1.03]">
-          <div className="flex justify-start mb-4">
-            <Activity className="h-10 w-10 text-[var(--fp-warm-500)]" />
-          </div>
-          <h3 className="mb-4 text-2xl font-bold text-[var(--text-title)]">
-            Bienestar proactivo.
-          </h3>
-          <p className="text-lg text-[var(--text-base)]">
-            Monitorea su actividad diaria, patrones de sueño y recibe alertas
-            importantes sobre su bienestar.
-          </p>
-        </div>
-
-        <div className="transform rounded-2xl bg-[var(--fp-primary-600)] p-8 text-white shadow-xl transition duration-300 ease-in-out hover:scale-[1.03]">
-          <div className="flex justify-start mb-4">
-            <ClipboardPenLine className="h-10 w-10" />
-          </div>
-          <h3 className="mb-4 text-2xl font-bold">Todo en un solo lugar.</h3>
-          <p className="text-lg opacity-90">
-            Gestiona recordatorios de medicamentos, comidas y paseos. FitPet es
-            el centro de mando de la vida de tu mascota.
-          </p>
-        </div>
-      </section>
-
+    <div className="container mx-auto px-4 py-5 bg-white">
       
-      <section className="my-32 flex flex-col items-center rounded-3xl border-t-8 border-[var(--fp-mint-600)] bg-[var(--bg-surface)] p-8 shadow-xl ring-1 ring-[var(--border-soft)] md:flex-row md:p-12 lg:p-20">
-        <div className="order-2 p-4 md:w-1/2 md:order-1">
-          <h2 className="mb-6 border-l-4 border-[var(--fp-primary-600)] pl-4 text-4xl font-bold leading-tight text-[var(--text-title)] lg:text-5xl">
-            Monitorea su actividad diaria.
-          </h2>
-          <p className="text-xl leading-relaxed text-[var(--text-base)]">
-            FitPet te ayuda a entender las necesidades de tu mascota. Registra
-            sus paseos, comprueba sus calorías quemadas y asegúrate de que
-            descansa lo suficiente.
-            <strong className="mt-4 block text-[var(--text-title)]">
-              Una mascota activa es una mascota feliz.
-            </strong>
-          </p>
-        </div>
-
-        <div className="order-1 p-4 md:w-1/2 md:order-2">
-          <img
-            src="https://placehold.co/600x400/0F4C5C/FFFFFF?text=FitPet+App"
-            alt="App de FitPet monitoreando a un perro"
-            className="h-auto w-full transform rounded-2xl shadow-2xl ring-4 ring-white"
-          />
-        </div>
-      </section>
-
-      
-      <section className="my-20 text-center">
-        <h2 className="mb-6 text-4xl font-bold tracking-tight text-[var(--text-title)] md:text-5xl">
-          Funcionalidades{' '}
-          <span className="text-[var(--fp-mint-600)] underline">
-            Destacadas
-          </span>
-        </h2>
-        <p className="mx-auto max-w-4xl px-4 text-xl text-[var(--text-base)]">
-          Desde recordatorios de vacunas hasta un historial médico completo y
-          seguimiento de la nutrición. Todo lo que necesitas para un cuidado
-          excepcional, en la palma de tu mano.
+      {/* Hero Section */}
+      <section className="text-center my-12">
+        <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight leading-none">
+          Hola, <span className="text-fp-mint-600">dueño de mascota</span>!
+        </h1>
+        <p className="max-w-4xl mx-auto text-xl text-gray-600 px-4 mb-8">
+          Tu dashboard de bienestar personalizado. Aquí controlas la vida activa y saludable de tu compañero peludo.
         </p>
+      </section>
+
+      {/* Grid 2x2 - Diseño Asimétrico estilo Margarita */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8 mb-20">
+        
+        {/* Card 1: Monitoreo de Actividad - Verde claro */}
+        <div className="p-8 bg-teal-100 rounded-2xl shadow-xl transform hover:scale-105 transition duration-300 ease-in-out cursor-pointer">
+          <div className="flex justify-start mb-4">
+            <Activity className="h-10 w-10 text-fp-primary-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Monitoreo de Actividad
+          </h3>
+          <p className="text-lg text-gray-700">
+            Seguimiento de paseos, patrones de sueño y calorías quemadas para un bienestar proactivo.
+          </p>
+        </div>
+        
+        {/* Card 2: Historial Clínico - Borde naranja (destacado) */}
+        <div className="p-8 bg-gray-100 border-4 border-fp-warm-500 rounded-2xl shadow-2xl transform hover:scale-105 transition duration-300 ease-in-out cursor-pointer">
+          <div className="flex justify-start mb-4">
+            <ClipboardPenLine className="h-10 w-10 text-fp-warm-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            Historial Clínico Digital
+          </h3>
+          <p className="text-lg text-gray-600">
+            Accede a vacunas, citas y diagnósticos en un solo lugar, siempre accesible.
+          </p>
+        </div>
+        
+        {/* Card 3: Recordatorios - Verde claro */}
+        <div className="p-8 bg-teal-100 rounded-2xl shadow-xl transform hover:scale-105 transition duration-300 ease-in-out cursor-pointer">
+          <div className="flex justify-start mb-4">
+            <Zap className="h-10 w-10 text-fp-primary-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Recordatorios Inteligentes
+          </h3>
+          <p className="text-lg text-gray-700">
+            Nunca olvides una dosis de medicamento o la próxima cita con recordatorios automáticos.
+          </p>
+        </div>
+        
+        {/* Card 4: Amor en Acción - Verde claro */}
+        <div className="p-8 bg-teal-100 rounded-2xl shadow-xl transform hover:scale-105 transition duration-300 ease-in-out cursor-pointer">
+          <div className="flex justify-start mb-4">
+            <Heart className="h-10 w-10 text-red-500" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Más que Datos, es Amor en Acción
+          </h3>
+          <p className="text-lg text-gray-700">
+            Cada registro, cada recordatorio, cada momento compartido fortalece el lazo con quien te brinda amor incondicional.
+          </p>
+        </div>
+      </section>
+
+      {/* Sección Filosofía - Similar a Margarita */}
+      <section className="my-32 bg-gray-50 p-8 md:p-20 rounded-3xl shadow-xl border-t-8 border-fp-mint-500">
+        <div className="text-center">
+          <h2 className="text-5xl font-black text-gray-900 mb-6 leading-tight">
+            Nuestra Filosofía: <span className="text-fp-mint-600">Tecnología con Amor</span>
+          </h2>
+          <p className="max-w-4xl mx-auto text-xl text-gray-600 leading-relaxed">
+            En FitPet, combinamos <strong>tecnología inteligente</strong> con el cuidado que tu mascota merece. 
+            Creemos en un seguimiento personalizado, datos claros y recordatorios que facilitan tu vida. 
+            Porque cuidar de tu compañero peludo debe ser simple, efectivo y lleno de amor.
+          </p>
+        </div>
       </section>
 
     </div>
   )
 }
-
-export default HomePage

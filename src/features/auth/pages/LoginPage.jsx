@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
-import Logo from '../../../assets/logo.svg'
-import { isValidEmail } from '/src/features/auth/utils/validation.js'
+import Logo from "../../../shared/assets/logo.svg"
+
+/**
+ * Valida si un email tiene formato correcto
+ */
+const isValidEmail = (email) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return regex.test(email)
+}
 
 /**
  * Página de Login
@@ -26,7 +33,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
       setShowSuccess(true)
-      const timer = setTimeout(() => setShowSuccess(false), 5000) // Ocultar después de 5s
+      const timer = setTimeout(() => setShowSuccess(false), 5000)
       return () => clearTimeout(timer)
     }
   }, [searchParams])
@@ -56,7 +63,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setApiError(null)
-    setShowSuccess(false) // Ocultar mensaje de éxito al reenviar
+    setShowSuccess(false)
 
     // Validar localmente
     if (!validateForm()) {
@@ -67,25 +74,21 @@ export default function LoginPage() {
 
     // Llamar a la API (endpoint del anexo HU2)
     try {
-      const response = await fetch('/api/v1/auth/token', {
+      const response = await fetch('http://localhost:8080/api/v1/auth/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // El backend espera 'username' y 'password' para el AuthRequest
         body: JSON.stringify({ username: email, password }),
       })
 
       // Manejar respuestas
       if (response.status === 201) {
-        // ÉXITO (201 Created)
         const data = await response.json()
         localStorage.setItem('token', data.accessToken)
-        // Forzamos un reload para que el Header detecte el token
-        // (En un futuro, esto lo manejará un estado global)
-        window.location.href = '/'
+        window.dispatchEvent(new Event('storage'))
+        navigate('/')
       } else {
-        // ERROR (401 Unauthorized)
         const errorData = await response.json()
         setApiError(errorData.message || 'Email o contraseña incorrectos')
       }
@@ -100,26 +103,30 @@ export default function LoginPage() {
   // Helper para mostrar borde de error
   const getErrorClass = (fieldName) =>
     formErrors[fieldName]
-      ? 'border-[var(--fp-error)] focus:border-[var(--fp-error)] focus:ring-[var(--fp-error)]'
-      : 'border-[var(--border-soft)] focus:border-[var(--fp-primary-600)] focus:ring-[var(--fp-primary-600)]'
+      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+      : 'border-gray-300 focus:border-fp-primary-600 focus:ring-fp-primary-600'
 
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full max-w-md space-y-8 mx-auto py-12 px-4">
       {/* Encabezado y Logo */}
       <div className="text-center">
         <img
-          className="mx-auto h-16 w-auto"
+          className="mx-auto h-50 w-auto"
           src={Logo}
           alt="FitPet Logo"
         />
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-[var(--text-title)]">
+        <p className="-mt-4 text-sm font-semibold tracking-wide uppercase text-gray-600">
+          Tu compañero en su{' '}
+          <span className="text-fp-mint-600 font-bold">mejor forma</span>
+        </p>
+        <h2 className="mt-8 text-center text-3xl font-bold tracking-tight text-gray-900">
           Inicia sesión
         </h2>
-        <p className="mt-2 text-center text-sm text-[var(--text-base)]">
+        <p className="mt-2 text-center text-sm text-gray-600">
           ¿Aún no tienes cuenta?{' '}
           <Link
             to="/register"
-            className="font-medium text-[var(--fp-primary-500)] hover:text-[var(--fp-primary-600)]"
+            className="font-medium text-fp-primary-600 hover:text-fp-primary-700 transition-colors"
           >
             Regístrate aquí
           </Link>
@@ -131,10 +138,10 @@ export default function LoginPage() {
         {/* Mensaje de Registro Exitoso */}
         {showSuccess && (
           <div
-            className="rounded-md border border-[var(--fp-success)] bg-[var(--fp-success)]/10 p-3"
+            className="rounded-md border border-green-500 bg-green-50 p-3"
             role="alert"
           >
-            <p className="text-sm font-medium text-[var(--fp-success)]">
+            <p className="text-sm font-medium text-green-700">
               ¡Registro completado! Por favor, inicia sesión.
             </p>
           </div>
@@ -143,16 +150,16 @@ export default function LoginPage() {
         {/* Error de API (401) */}
         {apiError && (
           <div
-            className="rounded-md border border-[var(--fp-error)] bg-[var(--fp-error)]/10 p-3"
+            className="rounded-md border border-red-500 bg-red-50 p-3"
             role="alert"
           >
-            <p className="text-sm font-medium text-[var(--fp-error)]">
+            <p className="text-sm font-medium text-red-700">
               {apiError}
             </p>
           </div>
         )}
 
-        <div className="space-y-4 rounded-md shadow-sm">
+        <div className="space-y-4 rounded-md">
           {/* Email */}
           <div>
             <label htmlFor="email" className="sr-only">
@@ -169,7 +176,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className={`relative block w-full appearance-none rounded-md border py-3 pl-10 pr-3 text-[var(--text-base)] placeholder-gray-500 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-1 sm:text-sm ${getErrorClass(
+                className={`relative block w-full appearance-none rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-2 sm:text-sm ${getErrorClass(
                   'email'
                 )}`}
                 placeholder="Email"
@@ -178,7 +185,7 @@ export default function LoginPage() {
               />
             </div>
             {formErrors.email && (
-              <p className="mt-1 text-xs text-[var(--fp-error)]">
+              <p className="mt-1 text-xs text-red-600">
                 {formErrors.email}
               </p>
             )}
@@ -200,7 +207,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className={`relative block w-full appearance-none rounded-md border py-3 pl-10 pr-3 text-[var(--text-base)] placeholder-gray-500 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-1 sm:text-sm ${getErrorClass(
+                className={`relative block w-full appearance-none rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-2 sm:text-sm ${getErrorClass(
                   'password'
                 )}`}
                 placeholder="Contraseña"
@@ -209,7 +216,7 @@ export default function LoginPage() {
               />
             </div>
             {formErrors.password && (
-              <p className="mt-1 text-xs text-[var(--fp-error)]">
+              <p className="mt-1 text-xs text-red-600">
                 {formErrors.password}
               </p>
             )}
@@ -221,7 +228,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-md border border-transparent bg-[var(--fp-primary-600)] px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--fp-primary-700)] focus:outline-none focus:ring-2 focus:ring-[var(--fp-primary-500)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-fp-primary-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-fp-primary-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-fp-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? 'Iniciando sesión...' : 'Entrar'}
           </button>
@@ -230,5 +237,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
-

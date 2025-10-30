@@ -1,10 +1,9 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import AppLayout from '/src/shared/layout/AppLayout.jsx'
 import CredentialsLayout from '/src/shared/layout/CredentialsLayout.jsx'
-
-import HomePage from '/src/features/home/pages/HomePage.jsx'
-import LoginPage from '/src/features/auth/pages/LoginPage.jsx'
+import HomePage from '/src/features/home/HomePage.jsx'
 import RegisterPage from '/src/features/auth/pages/RegisterPage.jsx'
+import LoginPage from '/src/features/auth/pages/LoginPage.jsx'
 
 /**
  * Definición del Router de la aplicación FitPet.

@@ -1,9 +1,6 @@
 import { Outlet } from 'react-router-dom'
-
 import Header from '../components/ui/Header.jsx'
 import Footer from '../components/ui/Footer.jsx'
-
-import '../../styles/themes.css'
 
 /**
  * AppLayout es el contenedor principal de la aplicación.
@@ -12,11 +9,10 @@ import '../../styles/themes.css'
  */
 export default function AppLayout() {
   return (
-    <div className="flex min-h-dvh flex-col bg-[var(--bg-app)] text-[var(--text-base)]">
+    <div className="flex min-h-screen flex-col bg-white">
       <Header />
 
-      <main className="flex-grow">
-        {/* El Outlet renderizará la página actual (ej. HomePage, CitasPage) */}
+      <main className="grow pt-24">
         <Outlet />
       </main>
 
@@ -24,4 +20,3 @@ export default function AppLayout() {
     </div>
   )
 }
-
