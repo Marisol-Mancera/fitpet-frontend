@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
-import clsx from 'clsx'
 
+/**
+ * ThemeToggle - Componente mejorado para cambiar entre modo claro y oscuro
+ * Con animaciones suaves y diseño moderno tipo switch
+ */
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
-    // Verifica si el usuario ya tenía un tema guardado en localStorage
+    // Verifica si el usuario ya tenía un tema guardado
     const stored = localStorage.getItem('theme')
     if (stored) return stored
 
-    // Si no hay, detecta preferencia del sistema operativo
-    // (usamos '!!' para asegurar que sea un booleano si matchMedia no está disponible en test)
-    return !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    // Si no, detecta preferencia del sistema
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light'
   })
 
-  // Efecto que sincroniza el estado 'theme' con el DOM (<html>) y localStorage
+  // Sincroniza el tema con el DOM y localStorage
   useEffect(() => {
     const root = document.documentElement
     if (theme === 'dark') {
@@ -26,24 +28,42 @@ export default function ThemeToggle() {
     localStorage.setItem('theme', theme)
   }, [theme])
 
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+  }
+
+  const isDark = theme === 'dark'
+
   return (
     <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className={clsx(
-        'p-2 rounded-full transition-colors duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-offset-2',
-        theme === 'dark'
-          ? 'bg-fp-neutral-300 text-fp-text-900 hover:bg-fp-mint-600 focus:ring-fp-mint-500' // Estilos Dark
-          : 'bg-fp-neutral-100 text-fp-primary-700 hover:bg-fp-primary-600 hover:text-white focus:ring-fp-primary-500' // Estilos Light
-      )}
-      aria-label="Cambiar tema (actual: modo oscuro)"
-    
+      onClick={toggleTheme}
+      className="relative inline-flex h-10 w-20 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-fp-mint-500 focus:ring-offset-2 bg-gray-200 hover:bg-gray-300"
+      style={{
+        backgroundColor: isDark ? '#0F4C5C' : '#E5E7EB'
+      }}
+      aria-label={`Cambiar a modo ${isDark ? 'claro' : 'oscuro'}`}
     >
-      <span className="sr-only">
-        {theme === 'dark' ? 'Modo claro activado' : 'Modo oscuro activado'}
+      {/* Círculo deslizante */}
+      <span
+        className="inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-all duration-300 ease-in-out"
+        style={{
+          transform: isDark ? 'translateX(2.5rem)' : 'translateX(0.25rem)'
+        }}
+      >
+        {/* Ícono dentro del círculo */}
+        <span className="flex h-full w-full items-center justify-center">
+          {isDark ? (
+            <Moon className="h-5 w-5 text-fp-primary-700 animate-pulse" />
+          ) : (
+            <Sun className="h-5 w-5 text-fp-warm-500 animate-pulse" />
+          )}
+        </span>
       </span>
-      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+
+      {/* Texto indicador (opcional, se oculta en móvil) */}
+      <span className="sr-only">
+        {isDark ? 'Modo oscuro activado' : 'Modo claro activado'}
+      </span>
     </button>
   )
 }
-
