@@ -4,6 +4,8 @@ import { Lock, Mail } from 'lucide-react'
 import Logo from "../../../shared/assets/logo.svg"
 import { login, saveToken } from '../services/authService'
 import { isValidEmail } from '../utils/validation'
+import Button from '../../../shared/components/ui/Button'
+import Input from '../../../shared/components/ui/Input'
 
 /**
  * Página de Login
@@ -77,12 +79,6 @@ export default function LoginPage() {
     }
   }
 
-  // Helper para mostrar borde de error
-  const getErrorClass = (fieldName) =>
-    formErrors[fieldName]
-      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-      : 'border-gray-300 focus:border-fp-primary-600 focus:ring-fp-primary-600'
-
   return (
     <div className="w-full max-w-md space-y-8 mx-auto py-12 px-4">
       {/* Encabezado y Logo */}
@@ -136,80 +132,46 @@ export default function LoginPage() {
           </div>
         )}
 
-        <div className="space-y-4 rounded-md">
+        <div className="space-y-4">
           {/* Email */}
-          <div>
-            <label htmlFor="email" className="sr-only">
-              Email
-            </label>
-            <div className="relative">
-              <Mail
-                className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-                aria-hidden="true"
-              />
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className={`relative block w-full appearance-none rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-2 sm:text-sm ${getErrorClass(
-                  'email'
-                )}`}
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            {formErrors.email && (
-              <p className="mt-1 text-xs text-red-600">
-                {formErrors.email}
-              </p>
-            )}
-          </div>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={formErrors.email}
+            icon={Mail}
+            autoComplete="email"
+            required
+          />
 
           {/* Password */}
-          <div>
-            <label htmlFor="password_login" className="sr-only">
-              Contraseña
-            </label>
-            <div className="relative">
-              <Lock
-                className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-                aria-hidden="true"
-              />
-              <input
-                id="password_login"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className={`relative block w-full appearance-none rounded-lg border py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 transition-colors duration-200 focus:z-10 focus:outline-none focus:ring-2 sm:text-sm ${getErrorClass(
-                  'password'
-                )}`}
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {formErrors.password && (
-              <p className="mt-1 text-xs text-red-600">
-                {formErrors.password}
-              </p>
-            )}
-          </div>
+          <Input
+            id="password_login"
+            name="password"
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={formErrors.password}
+            icon={Lock}
+            autoComplete="current-password"
+            required
+          />
         </div>
 
         {/* Botón de envío */}
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-fp-primary-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-fp-primary-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-fp-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isLoading ? 'Iniciando sesión...' : 'Entrar'}
-          </button>
-        </div>
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          fullWidth
+          isLoading={isLoading}
+        >
+          Entrar
+        </Button>
       </form>
     </div>
   )
