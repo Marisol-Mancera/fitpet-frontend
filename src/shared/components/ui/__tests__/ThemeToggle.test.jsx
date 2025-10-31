@@ -46,51 +46,42 @@ describe('ThemeToggle', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false)
     expect(localStorage.getItem('theme')).toBe('light')
 
-    // Act
     fireEvent.click(btn)
 
-    // Assert
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('theme')).toBe('dark')
   })
 
   test('desactiva modo oscuro y persiste "light" si ya estaba activado', () => {
-    // Arrange: Simular estado previo 'dark'
+    //Simular estado previo 'dark'
     document.documentElement.classList.add('dark')
     localStorage.setItem('theme', 'dark')
 
     render(<ThemeToggle />)
     const btn = screen.getByRole('button')
 
-    // Act
     fireEvent.click(btn)
 
-    // Assert
     expect(document.documentElement.classList.contains('dark')).toBe(false)
     expect(localStorage.getItem('theme')).toBe('light')
   })
 
   test('carga "dark" por defecto si el sistema operativo lo prefiere', () => {
-    // Arrange: Simular que el S.O. prefiere dark
+    // Simular que el S.O. prefiere dark
     window.matchMedia = vi.fn(mockMatchMedia(true))
 
-    // Act
     render(<ThemeToggle />)
 
-    // Assert
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('theme')).toBe('dark')
   })
 
   test('carga "dark" si está guardado en localStorage, ignorando matchMedia', () => {
-    // Arrange
     window.matchMedia = vi.fn(mockMatchMedia(false))
     localStorage.setItem('theme', 'dark')
 
-    // Act
     render(<ThemeToggle />)
 
-    // Assert
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('theme')).toBe('dark')
   })
