@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 
+// Mock de matchMedia para todos los tests
 if (!window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,

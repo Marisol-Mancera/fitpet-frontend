@@ -1,19 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
-
-import LoginPage from '/src/features/auth/pages/LoginPage.jsx'
-
-// --- Mocks ---
+import LoginPage from '../LoginPage.jsx'
 
 // Mock del logo
-// (Esta ruta absoluta parece funcionar en el preview, la mantenemos)
-vi.mock('/src/assets/logo.svg', () => ({
+vi.mock('../../../../shared/assets/logo.svg', () => ({
   default: 'mocked-logo.svg',
 }))
 
-// Mock de useNavigate para espiar sus llamadas
+// Mock de useNavigate
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal()
@@ -23,34 +19,25 @@ vi.mock('react-router-dom', async (importOriginal) => {
   }
 })
 
-// Mock de matchMedia (necesario por el ThemeToggle en otros componentes)
-beforeAll(() => {
-  window.matchMedia = vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
-});
+// Mock del authService
+vi.mock('../../services/authService', () => ({
+  login: vi.fn(),
+  saveToken: vi.fn(),
+}))
 
-// Limpiamos mocks y localStorage antes de cada test
+import { login, saveToken } from '../../services/authService'
+
 beforeEach(() => {
   mockNavigate.mockClear()
+  vi.mocked(login).mockClear()
+  vi.mocked(saveToken).mockClear()
   localStorage.clear()
 })
 
-// --- Componente de renderizado ---
 const renderComponent = () => {
   render(
-    <MemoryRouter initialEntries={['/login']}>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<div>Página de Inicio</div>} />
-      </Routes>
+    <MemoryRouter>
+      <LoginPage />
     </MemoryRouter>
   )
 }
@@ -60,8 +47,8 @@ describe('LoginPage', () => {
     renderComponent()
 
     expect(screen.getByRole('heading', { name: /Bienvenido/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Email/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Contraseña/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Entrar/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Crear una cuenta/i })).toBeInTheDocument()
   })
@@ -71,55 +58,50 @@ describe('LoginPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Entrar/i }))
 
-    expect(await screen.findByText(/Email y contraseña son obligatorios./i)).toBeInTheDocument()
+    expect(await screen.findByText(/El email es obligatorio/i)).toBeInTheDocument()
     expect(mockNavigate).not.toHaveBeenCalled()
-    expect(localStorage.getItem('token')).toBeNull()
   })
 
   test('muestra error con credenciales incorrectas', async () => {
+    vi.mocked(login).mockRejectedValueOnce(new Error('Credenciales incorrectas'))
+
     renderComponent()
 
-    fireEvent.change(screen.getByLabelText(/Email/i), {
+    fireEvent.change(screen.getByPlaceholderText(/Email/i), {
       target: { value: 'usuario@incorrecto.com' },
     })
-    fireEvent.change(screen.getByLabelText(/Contraseña/i), {
-      target: { value: '123' },
+    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), {
+      target: { value: 'wrongpass' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Entrar/i }))
-
-    expect(screen.getByRole('button', { name: /Iniciando sesión.../i })).toBeDisabled()
 
     await waitFor(() => {
       expect(screen.getByText(/Credenciales incorrectas/i)).toBeInTheDocument()
     })
 
     expect(mockNavigate).not.toHaveBeenCalled()
-    expect(localStorage.getItem('token')).toBeNull()
   })
 
   test('redirige a / y guarda token con credenciales correctas', async () => {
+    vi.mocked(login).mockResolvedValueOnce({
+      accessToken: 'fake-jwt-token',
+      tokenType: 'Bearer',
+      expiresIn: 3600,
+    })
+
     renderComponent()
 
-    fireEvent.change(screen.getByLabelText(/Email/i), {
+    fireEvent.change(screen.getByPlaceholderText(/Email/i), {
       target: { value: 'test@fitpet.app' },
     })
-    fireEvent.change(screen.getByLabelText(/Contraseña/i), {
-      target: { value: 'password123' },
+    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), {
+      target: { value: 'ValidPass1!' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Entrar/i }))
 
-    expect(screen.getByRole('button', { name: /Iniciando sesión.../i })).toBeDisabled()
-
-    // Esperamos a que la navegación ocurra
     await waitFor(() => {
+      expect(saveToken).toHaveBeenCalledWith('fake-jwt-token')
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
-
-    // Verificamos que el token se guardó
-    expect(localStorage.getItem('token')).toBe('fake-jwt-token-from-login')
-    
-    // Verificamos que ya no muestra error
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })
-

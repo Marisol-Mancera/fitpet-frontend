@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Mail } from 'lucide-react'
 import Logo from "../../../shared/assets/logo.svg"
 import { register } from '../services/authService'
-import { isValidEmail, isStrongPassword } from '../utils/validation'
+import { isValidEmail } from '../utils/validation'
 import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 
@@ -25,24 +25,46 @@ export default function RegisterPage() {
   const [apiError, setApiError] = useState(null)
 
   /**
+   * Valida la contraseña de forma granular.
+   * Retorna el PRIMER error encontrado (prioridad).
+   */
+  const validatePassword = (pwd) => {
+    if (pwd.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres'
+    }
+    if (!/\d/.test(pwd)) {
+      return 'La contraseña debe contener al menos un número'
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) {
+      return 'La contraseña debe contener al menos un símbolo'
+    }
+    return null
+  }
+
+  /**
    * Valida el formulario localmente ANTES de enviarlo a la API.
    */
   const validateForm = () => {
     const errors = {}
 
+    // Validación de email
     if (!email) {
       errors.email = 'El email es obligatorio'
     } else if (!isValidEmail(email)) {
-      errors.email = 'Por favor, introduce un email válido'
+      errors.email = 'El correo electrónico no es válido'
     }
 
+    // Validación de contraseña (granular)
     if (!password) {
       errors.password = 'La contraseña es obligatoria'
-    } else if (!isStrongPassword(password)) {
-      errors.password =
-        'Debe tener 8+ caracteres, 1 mayúscula, 1 número y 1 símbolo.'
+    } else {
+      const passwordError = validatePassword(password)
+      if (passwordError) {
+        errors.password = passwordError
+      }
     }
 
+    // Validación de confirmación
     if (!confirmPassword) {
       errors.confirmPassword = 'Debes confirmar la contraseña'
     } else if (password && password !== confirmPassword) {
