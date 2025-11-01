@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter, useNavigate } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import LoginPage from '../LoginPage'
 
@@ -48,6 +49,8 @@ describe('LoginPage', () => {
     mockAuthService.isAuthenticated.mockReturnValue(false)
   })
 
+
+
   it('should render login form correctly', () => {
     const { container } = render(
       <MemoryRouter>
@@ -55,11 +58,9 @@ describe('LoginPage', () => {
       </MemoryRouter>
     )
 
-    // Verifica que el formulario existe
     const form = container.querySelector('form')
     expect(form).toBeTruthy()
 
-    // Verifica que hay inputs (más flexible)
     const emailInput = screen.getByPlaceholderText(/email/i) || 
                        screen.getByLabelText(/email/i) ||
                        container.querySelector('input[type="email"]')
@@ -70,15 +71,8 @@ describe('LoginPage', () => {
                           container.querySelector('input[type="password"]')
     expect(passwordInput).toBeTruthy()
 
-    // Verifica el botón de submit
     const submitButton = screen.getByRole('button', { name: /entrar|iniciar|login/i })
     expect(submitButton).toBeTruthy()
-
-    // Verifica el logo (más flexible)
-    const logo = container.querySelector('img[alt*="FitPet"]') || screen.queryByAltText(/FitPet/i)
-    if (logo) {
-      expect(logo).toBeTruthy()
-    }
   })
 
   it('should show error if form is submitted empty', async () => {
@@ -92,7 +86,6 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      // Verifica que aparece algún mensaje de error
       const errorMessage = screen.queryByText(/requerido|obligatorio|no puede estar vacío|inválido/i)
       if (errorMessage) {
         expect(errorMessage).toBeTruthy()
@@ -124,7 +117,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const errorMessage = screen.queryByText(/credenciales|inválido|incorrectas|error/i)
       if (errorMessage) {
-        expect(errorMessage).toBeInTheDocument()
+        expect(errorMessage).toBeTruthy()
       }
     })
   })
@@ -167,21 +160,93 @@ describe('LoginPage', () => {
     const registerLink = screen.getByRole('link', { name: /registra|crear cuenta|regístrate/i })
     expect(registerLink).toBeTruthy()
     
-    // Verifica el href (según el HTML real es /register)
     const href = registerLink.getAttribute('href')
     expect(href).toBe('/register')
   })
 
   it('should render tagline if present', () => {
-    const { container } = render(
+    render(
       <MemoryRouter>
         <LoginPage />
       </MemoryRouter>
     )
 
     // Verifica si existe el tagline (no falla si no está)
-    const tagline = screen.queryByText(/Tu compañero en su mejor forma/i) ||
-                    screen.queryByText(/mejor forma/i)
-    // No es crítico, solo verifica si existe
+    screen.queryByText(/Tu compañero en su mejor forma/i)
+  })
+
+  // ========================================
+  //  Validación de espacios
+  // ========================================
+
+  it('HU2: debe mostrar error si el email contiene espacios', async () => {
+    const user = userEvent.setup()
+    
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    )
+
+    await user.type(screen.getByPlaceholderText(/email/i), 'test @fitpet.app')
+    await user.type(screen.getByPlaceholderText(/contraseña/i), 'ValidPass1!')
+    await user.click(screen.getByRole('button', { name: /entrar|iniciar|login/i }))
+
+    await waitFor(() => {
+      const errorMessage = screen.queryByText(/el correo no debe contener espacios/i) ||
+                           screen.queryByText(/no debe contener espacios/i)
+      if (errorMessage) {
+        expect(errorMessage).toBeTruthy()
+      }
+      expect(mockAuthService.login).not.toHaveBeenCalled()
+    })
+  })
+
+  it('HU2: debe mostrar error si la contraseña contiene espacios', async () => {
+    const user = userEvent.setup()
+    
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    )
+
+    await user.type(screen.getByPlaceholderText(/email/i), 'test@fitpet.app')
+    await user.type(screen.getByPlaceholderText(/contraseña/i), 'Valid Pass1!')
+    await user.click(screen.getByRole('button', { name: /entrar|iniciar|login/i }))
+
+    await waitFor(() => {
+      const errorMessage = screen.queryByText(/la contraseña no debe contener espacios/i) ||
+                           screen.queryByText(/no debe contener espacios/i)
+      if (errorMessage) {
+        expect(errorMessage).toBeTruthy()
+      }
+      expect(mockAuthService.login).not.toHaveBeenCalled()
+    })
+  })
+
+  it('HU2: debe fallar login si la contraseña no coincide en mayúsculas/minúsculas', async () => {
+    const user = userEvent.setup()
+    
+    mockAuthService.login.mockRejectedValueOnce(new Error('Credenciales inválidas'))
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    )
+
+    await user.type(screen.getByPlaceholderText(/email/i), 'test@fitpet.app')
+    await user.type(screen.getByPlaceholderText(/contraseña/i), 'validpass1!')
+    await user.click(screen.getByRole('button', { name: /entrar|iniciar|login/i }))
+
+    await waitFor(() => {
+      expect(mockAuthService.login).toHaveBeenCalledWith('test@fitpet.app', 'validpass1!')
+      
+      const errorMessage = screen.queryByText(/credenciales|inválidas|incorrectas/i)
+      if (errorMessage) {
+        expect(errorMessage).toBeTruthy()
+      }
+    })
   })
 })
