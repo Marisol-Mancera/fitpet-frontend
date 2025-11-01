@@ -103,11 +103,13 @@ export default function RegisterPage() {
     <div className="w-full max-w-md space-y-8 mx-auto py-12 px-4">
       {/* Encabezado y Logo */}
       <div className="text-center">
-        <img
-          className="mx-auto h-32 w-auto"
-          src={Logo}
-          alt="FitPet Logo"
-        />
+        <Link to="/" className="inline-block" aria-label="Ir a la página de inicio">
+          <img
+            className="mx-auto h-32 w-auto transition-all duration-300 hover:scale-110"
+            src={Logo}
+            alt="FitPet Logo"
+          />
+        </Link>
         <p className="-mt-4 text-sm font-semibold tracking-wide uppercase text-gray-600">
           Tu compañero en su{' '}
           <span className="text-fp-mint-600 font-bold">mejor forma</span>

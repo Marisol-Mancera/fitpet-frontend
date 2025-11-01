@@ -2,7 +2,6 @@ import { Activity, ClipboardPenLine, Zap, Heart } from 'lucide-react'
 
 /**
  * Página principal del dashboard de FitPet.
- * Diseño inspirado en Margarita con grid 2x2 y colores FitPet.
  */
 export default function HomePage() {
   return (
