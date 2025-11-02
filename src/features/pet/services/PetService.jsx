@@ -4,7 +4,7 @@
  * 
  */
 
-import { getToken } from './authService'
+import { getToken } from "../../auth/services/authService"
 
 const API_BASE_URL = 'http://localhost:8080/api/v1/pets'
 
