@@ -1,6 +1,6 @@
 /**
  * petService.js
- * Servicio centralizado para todas las llamadas al backend de mascotas.
+ * Servicio centralizado para todas las llamadas al backend de mascotas (pets).
  * 
  */
 
@@ -9,11 +9,15 @@ import { getToken } from './authService'
 const API_BASE_URL = 'http://localhost:8080/api/v1/pets'
 
 /**
- * Obtiene el header de autenticación con el JWT token.
- * @returns {Object} headers con Authorization Bearer
+ * Obtiene el token JWT del localStorage y construye el header de autorización
+ * @returns {Object} Headers con Authorization Bearer token
+ * @throws {Error} Si no hay token (usuario no autenticado)
  */
 const getAuthHeaders = () => {
   const token = getToken()
+  if (!token) {
+    throw new Error('No estás autenticado. Por favor, inicia sesión.')
+  }
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
@@ -21,119 +25,92 @@ const getAuthHeaders = () => {
 }
 
 /**
- * Endpoint: POST /api/v1/pets
+ * Endpoint: GET /api/v1/pets
  * 
- * @param {Object} petData - Datos de la mascota
- * @param {string} petData.name - Nombre de la mascota
- * @param {string} petData.species - Especie (Dog, Cat, etc.)
- * @param {string} petData.breed - Raza
- * @param {string} petData.sex - Sexo (Male, Female)
- * @param {string} petData.birthDate - Fecha de nacimiento (YYYY-MM-DD)
- * @param {number} petData.weightKg - Peso en kilogramos
- * @returns {Promise<Object>} PetDTOResponse con la mascota creada
+ * @param {string|null} species - Especie para filtrar (opcional). Ej: 'Dog', 'Cat', 'Bird'
+ * @returns {Promise<Array>} Lista de mascotas como PetDTOResponse[]
  * @throws {Error} Con mensaje específico según tipo de error
  * 
- * - 201 Created: Mascota creada exitosamente
- * - 400 Bad Request: Campos obligatorios faltantes o inválidos
- * - 401 Unauthorized: Token JWT inválido o expirado
- */
-export const createPet = async (petData) => {
-  try {
-    const response = await fetch(API_BASE_URL, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(petData),
-    })
-
-    if (response.status === 201) {
-      const data = await response.json()
-      return data
-    }
-
-    const errorData = await response.json().catch(() => ({}))
-
-    if (response.status === 400) {
-      throw new Error(errorData.message || 'Datos de mascota inválidos')
-    }
-
-    if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
-    }
-
-    throw new Error(errorData.message || 'Error al registrar mascota')
-
-  } catch (err) {
-    if (err instanceof Error && err.message !== 'Failed to fetch') {
-      throw err
-    }
-    throw new Error('Error de conexión. No se pudo contactar al servidor.')
-  }
-}
-
-/**
- * Endpoint: GET /api/v1/pets o GET /api/v1/pets?species={especie}
+ * - 200 OK: Lista de mascotas (puede ser vacía [])
+ * - 401 Unauthorized: Token inválido o expirado
+ * - 403 Forbidden: Token válido pero sin permisos
  * 
- * @param {string|null} species - (Opcional) Filtrar por especie (ej: "Dog", "Cat")
- * @returns {Promise<Array>} Array de PetDTOResponse
- * @throws {Error} Con mensaje específico según tipo de error
- * 
- * - 200 OK: Devuelve lista (vacía si no tiene mascotas)
- * - 401 Unauthorized: Token JWT inválido o expirado
- * 
- * Ejemplos de uso:
- * - listPets() → todas las mascotas
- * - listPets("Dog") → solo perros
+ * Formato de respuesta:
+ * [
+ *   {
+ *     "id": 1,
+ *     "ownerId": 5,
+ *     "name": "Pony",
+ *     "species": "Dog",
+ *     "breed": "Beagle",
+ *     "sex": "Female",
+ *     "birthDate": "2022-04-15",
+ *     "weightKg": 12.4
+ *   }
+ * ]
  */
 export const listPets = async (species = null) => {
   try {
+    // Construir URL con query parameter opcional
     const url = species 
       ? `${API_BASE_URL}?species=${encodeURIComponent(species)}`
       : API_BASE_URL
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders()
     })
 
+    // Scenario: Listado exitoso → 200 OK
     if (response.status === 200) {
       const data = await response.json()
-      return data
+      return data // Array de PetDTOResponse
     }
 
+    // Manejo de errores según responses del backend
     const errorData = await response.json().catch(() => ({}))
-
+    
+    // 401 Unauthorized: Token inválido o expirado
     if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+      throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
     }
-
-    throw new Error(errorData.message || 'Error al obtener mascotas')
-
+    
+    // 403 Forbidden: Sin permisos
+    if (response.status === 403) {
+      throw new Error('No tienes permisos para acceder a esta información.')
+    }
+    
+    // Otros errores (500, etc.)
+    throw new Error(errorData.message || 'Error al obtener las mascotas')
+    
   } catch (err) {
+    // Si ya es un error personalizado (throw new Error arriba), lo propagamos
     if (err instanceof Error && err.message !== 'Failed to fetch') {
       throw err
     }
+    // Error de red (backend no responde)
     throw new Error('Error de conexión. No se pudo contactar al servidor.')
   }
 }
 
 /**
- * Obtener detalle de una mascota específica
+ * Obtener detalles de una mascota específica
  * Endpoint: GET /api/v1/pets/{id}
  * 
  * @param {number} id - ID de la mascota
- * @returns {Promise<Object>} PetDTOResponse con el detalle
+ * @returns {Promise<Object>} PetDTOResponse con todos los datos
  * @throws {Error} Con mensaje específico según tipo de error
  * 
  * Escenarios:
- * - 200 OK: Devuelve el detalle de la mascota
+ * - 200 OK: Mascota encontrada y pertenece al usuario
  * - 404 Not Found: Mascota no existe o no pertenece al usuario
- * - 401 Unauthorized: Token JWT inválido
+ * - 401 Unauthorized: Token inválido
  */
 export const getPetById = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'GET',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders()
     })
 
     if (response.status === 200) {
@@ -142,17 +119,17 @@ export const getPetById = async (id) => {
     }
 
     const errorData = await response.json().catch(() => ({}))
-
+    
     if (response.status === 404) {
       throw new Error('Mascota no encontrada')
     }
-
+    
     if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+      throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
     }
-
-    throw new Error(errorData.message || 'Error al obtener mascota')
-
+    
+    throw new Error(errorData.message || 'Error al obtener la mascota')
+    
   } catch (err) {
     if (err instanceof Error && err.message !== 'Failed to fetch') {
       throw err
@@ -162,19 +139,94 @@ export const getPetById = async (id) => {
 }
 
 /**
- * Actualizar datos de una mascota existente
+ * Crear nueva mascota
+ * Endpoint: POST /api/v1/pets
+ * 
+ * @param {Object} petData - Datos de la mascota
+ * @param {string} petData.name - Nombre (obligatorio, no vacío)
+ * @param {string} petData.species - Especie (obligatorio, ej: 'Dog', 'Cat')
+ * @param {string} petData.breed - Raza (obligatorio)
+ * @param {string} petData.sex - Sexo (obligatorio, ej: 'Male', 'Female')
+ * @param {string} petData.birthDate - Fecha de nacimiento (obligatorio, formato 'YYYY-MM-DD', debe ser pasado)
+ * @param {number} petData.weightKg - Peso en kg (obligatorio, positivo)
+ * @returns {Promise<Object>} PetDTOResponse de la mascota creada
+ * @throws {Error} Con mensaje específico según tipo de error
+ * 
+ * Escenarios HU3:
+ * - 201 Created: Mascota creada exitosamente
+ * - 400 Bad Request: Validación fallida (campos obligatorios, birthDate futuro, weightKg negativo)
+ * - 401 Unauthorized: Token inválido
+ * 
+ * Ejemplo de uso:
+ * const nuevaMascota = await createPet({
+ *   name: 'Rex',
+ *   species: 'Dog',
+ *   breed: 'Labrador',
+ *   sex: 'Male',
+ *   birthDate: '2022-01-15',
+ *   weightKg: 25.5
+ * })
+ */
+export const createPet = async (petData) => {
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(petData)
+    })
+
+    // Scenario: Creación exitosa → 201 Created
+    if (response.status === 201) {
+      const data = await response.json()
+      return data // PetDTOResponse
+    }
+
+    const errorData = await response.json().catch(() => ({}))
+    
+    // 400 Bad Request → Validación fallida
+    // Ejemplos de errores backend:
+    // - "name must not be blank"
+    // - "birthDate must be in the past"
+    // - "weightKg must be positive"
+    if (response.status === 400) {
+      throw new Error(errorData.message || 'Error de validación. Revisa los datos ingresados.')
+    }
+    
+    if (response.status === 401) {
+      throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
+    }
+    
+    throw new Error(errorData.message || 'Error al crear la mascota')
+    
+  } catch (err) {
+    if (err instanceof Error && err.message !== 'Failed to fetch') {
+      throw err
+    }
+    throw new Error('Error de conexión. No se pudo contactar al servidor.')
+  }
+}
+
+/**
+ * Actualizar mascota existente
  * Endpoint: PUT /api/v1/pets/{id}
  * 
- * @param {number} id - ID de la mascota
- * @param {Object} petData - Datos actualizados (mismo formato que createPet)
- * @returns {Promise<Object>} PetDTOResponse actualizado
+ * @param {number} id - ID de la mascota a actualizar
+ * @param {Object} petData - Datos actualizados (misma estructura que createPet)
+ * @returns {Promise<Object>} PetDTOResponse de la mascota actualizada
+ * @throws {Error} Con mensaje específico según tipo de error
+ * 
+ * Escenarios:
+ * - 200 OK: Mascota actualizada exitosamente
+ * - 400 Bad Request: Validación fallida
+ * - 404 Not Found: Mascota no existe o no pertenece al usuario
+ * - 401 Unauthorized: Token inválido
  */
 export const updatePet = async (id, petData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(petData),
+      body: JSON.stringify(petData)
     })
 
     if (response.status === 200) {
@@ -183,21 +235,21 @@ export const updatePet = async (id, petData) => {
     }
 
     const errorData = await response.json().catch(() => ({}))
-
+    
     if (response.status === 400) {
-      throw new Error(errorData.message || 'Datos de mascota inválidos')
+      throw new Error(errorData.message || 'Error de validación. Revisa los datos ingresados.')
     }
-
+    
     if (response.status === 404) {
       throw new Error('Mascota no encontrada')
     }
-
+    
     if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+      throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
     }
-
-    throw new Error(errorData.message || 'Error al actualizar mascota')
-
+    
+    throw new Error(errorData.message || 'Error al actualizar la mascota')
+    
   } catch (err) {
     if (err instanceof Error && err.message !== 'Failed to fetch') {
       throw err
@@ -207,35 +259,42 @@ export const updatePet = async (id, petData) => {
 }
 
 /**
- * Eliminar una mascota
+ * Eliminar mascota
  * Endpoint: DELETE /api/v1/pets/{id}
  * 
- * @param {number} id - ID de la mascota
- * @returns {Promise<void>}
+ * @param {number} id - ID de la mascota a eliminar
+ * @returns {Promise<void>} No devuelve contenido (204 No Content)
+ * @throws {Error} Con mensaje específico según tipo de error
+ * 
+ * Escenarios:
+ * - 204 No Content: Mascota eliminada exitosamente
+ * - 404 Not Found: Mascota no existe o no pertenece al usuario
+ * - 401 Unauthorized: Token inválido
  */
 export const deletePet = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
+      headers: getAuthHeaders()
     })
 
+    // 204 No Content: Eliminación exitosa
     if (response.status === 204) {
-      return
+      return // No hay contenido que retornar
     }
 
     const errorData = await response.json().catch(() => ({}))
-
+    
     if (response.status === 404) {
       throw new Error('Mascota no encontrada')
     }
-
+    
     if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+      throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
     }
-
-    throw new Error(errorData.message || 'Error al eliminar mascota')
-
+    
+    throw new Error(errorData.message || 'Error al eliminar la mascota')
+    
   } catch (err) {
     if (err instanceof Error && err.message !== 'Failed to fetch') {
       throw err
