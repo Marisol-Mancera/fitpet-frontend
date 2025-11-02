@@ -151,7 +151,7 @@ src/
 │   │   ├── services/authService.js
 │   │   └── utils/validation.js
 │   ├── pet/
-│   │   ├── pages/PetPage.jsx   # HU4 (listado+filtros+modal)
+│   │   ├── pages/PetPage.jsx  (listado+filtros+modal)
 │   │   └── services/petService.js
 │   └── home/pages/HomePage.jsx
 ├── shared/
@@ -178,7 +178,7 @@ src/
   - `PUT /pets/{id}` — actualizar
   - `DELETE /pets/{id}` — eliminar
 
-### HU4 – `PetPage.jsx` (implementación)
+###  `PetPage.jsx` (implementación)
 - Carga desde API con `listPets(filtroEspecie)`
 - Botones de filtro: **Todas/Perros/Gatos/Aves/Otros**
 - **Modal de detalle** con `getPetById(id)`
@@ -214,7 +214,7 @@ npm run test:unit
 
 - Completar `dark:` en todos los componentes.
 - Página **Admin** (perfil/ajustes).
-- Formulario **Create/Edit Pet** (HU5).
+- Formulario **Create/Edit Pet**.
 - Estado global (Pinia/Redux/Context) si escala.
 - Accesibilidad (focus states, ARIA).
 
