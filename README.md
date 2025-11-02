@@ -223,5 +223,5 @@ npm run test:unit
 ## 👩‍💻 Créditos
 
 Frontend: **Marisol Mancera Villarejo**  
-Proyecto académico — Bootcamp
+Proyecto académico
 
