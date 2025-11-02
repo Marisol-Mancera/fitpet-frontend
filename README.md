@@ -223,5 +223,5 @@ npm run test:unit
 ## 👩‍💻 Créditos
 
 Frontend: **Marisol Mancera Villarejo**  
-Proyecto académico
+**Licencia/Disclaimer:** Proyecto académico, uso educativo, sin garantías.
 
