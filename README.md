@@ -1,153 +1,114 @@
-# 🐾 FitPet — Frontend (React + Vite + Tailwind v3)
+# FitPet Frontend (React + Tailwind v3)
 
-**Estado:** Entrega funcional inicial.  
-**Objetivo:** UI web para gestionar el bienestar de mascotas (registro/login, base de navegación, componentes reutilizables, theme claro/oscuro).  
-**Backend:** Java/Spring Boot (Docker + MySQL). Endpoints de auth operativos. Puedes acceder desde 👉 https://github.com/Marisol-Mancera/fitpet-backend
+> **Estado:** UI responsive, autenticación conectada al backend y listado de mascotas con filtros y modal de detalle.
 
----
-
-## 🚀 Estado del proyecto (31/10/2025)
-
-- ✅ **Login** operativo con JWT (token guardado en `localStorage`).
-- ✅ **Arquitectura** modular por features.
-- ✅ **Tests** unitarios: Login, Register, ThemeToggle.
-- ✅ **Tailwind v3** (sin CSS variables de temas).
-- ⚠️ **Dark Mode**: toggle funcionando, falta aplicar clases `dark:` en todos los componentes.
-- ⚙️ **Docker**: backend y MySQL listos vía `docker compose`.
+accede al Backend aqui 👉 https://github.com/Marisol-Mancera/fitpet-backend
 
 ---
 
-## 🧩 Características 
+## ✅ Descripción
 
-- **Autenticación**
-  - Registro: validación granular (email, longitud, número, símbolo, confirmación).
-  - Login: guarda **JWT** y redirige.
-- **UI/UX**
-  - Header, Footer, Home rediseñados (estilo “Margarita”).
-  - Componentes reutilizables: `Button`, `Input`, `ThemeToggle`.
-  - Responsive (Mobile + Desktop).
-- **Arquitectura FE**
-  - Rutas con React Router.
-  - `PrivateRoute` para proteger páginas.
-- **Pruebas**
-  - Vitest + React Testing Library.
-  - `setupTests.js` con `matchMedia` mock global.
+Aplicación **React** que consume la API de **FitPet** para:
+- **Registro** y **login** (JWT) con validación granular.
+- **Listado de mascotas** con **filtro por especie** y **modal de detalle**.
+- Componentes reutilizables (`Button`, `Input`, `ThemeToggle`) y layouts.
+
+**Nota:** Modo oscuro configurado (`darkMode: 'class'`) — pendiente completar clases `dark:` en algunos componentes.
 
 ---
 
-## 🧠 Stack
-
-- **React 18 + Vite**
-- **TailwindCSS v3** (`darkMode: 'class'`)
-- **Vitest** + **React Testing Library**
-- **Axios**
-- **ESLint / Prettier**
-- **Docker / Docker Compose** (stack full: backend + MySQL)
+## 🧭 Tabla de contenidos
+- [Arquitectura y Diagramas](#arquitectura-y-diagramas)
+- [Tecnologías](#tecnologías)
+- [Instalación y Setup](#instalación-y-setup)
+- [Variables de entorno](#variables-de-entorno)
+- [Scripts](#scripts)
+- [Estructura](#estructura)
+- [Integración con Backend](#integración-con-backend)
+- [Pruebas](#pruebas)
+- [Roadmap UI](#roadmap-ui)
+- [Créditos](#créditos)
 
 ---
 
-## ⚙️ Instalación y ejecución (Frontend)
+## 🧩 Arquitectura y Diagramas
+
+### Flujo de autenticación (frontend)
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as Usuario
+  participant R as React App
+  participant S as Backend API
+
+  U->>R: Completa Login (email, password)
+  R->>S: POST /api/v1/auth/login
+  S-->>R: 201 { tokenType, expiresIn, accessToken }
+  R->>R: saveToken(accessToken) en localStorage
+  R->>R: isAuthenticated() = true
+  U->>R: Accede a /mascotas
+  R->>S: GET /api/v1/pets (Authorization: Bearer ...)
+  S-->>R: 200 [ ...pets ]
+  R-->>U: Lista de mascotas
+```
+
+### Diagrama de páginas y servicios (simplificado)
+```mermaid
+graph LR
+  subgraph features/auth
+    LP(LoginPage) --- RS(authService)
+    RP(RegisterPage) --- RS
+  end
+
+  subgraph features/pet
+    PP(PetPage) --- PS(petService)
+  end
+
+  R(router.jsx) --> LP
+  R --> RP
+  R --> PP
+
+  RS -->|"POST /auth/login, /auth/registro"| API[(Backend API)]
+  PS -->|"GET/POST/PUT/DELETE /pets"| API
+```
+
+---
+
+## 🛠 Tecnologías
+
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind%20CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
+
+---
+
+## 📦 Instalación y Setup
 
 ```bash
-git clone https://github.com/Marisol-Mancera/fitpet-frontend
-cd fitpet_frontend
+git clone <tu-repo-frontend>
+cd fitpet-frontend
 npm install
-npm run dev
 ```
 
-
-```bash
-VITE_API_BASE_URL=http://localhost:8080/api/v1
-```
-
-> **Endpoints usados en esta versión (Auth):**  
-> Registro → `POST /auth/registro`  
-> Login → `POST /auth/token`
-
----
-
-## 🐋 Back + DB con Docker (referencia)
-
-El `docker compose` vive en el backend. Para levantar el stack completo:
-
-```bash
-# Desde la carpeta del backend
-docker compose up --build
-```
-
-**Servicios:**
-- **MySQL** → `localhost:3307` (interno `3306`)
-- **Backend** → `http://localhost:8080`
-
-**Spring Profile activo:** `mysql`.
-
----
-
-## 📁 Estructura del proyecto (Frontend)
-
-```
-fitpet_frontend/
-├── src/
-│   ├── app/
-│   │   └── routes/
-│   │       └── router.jsx
-│   ├── features/
-│   │   ├── auth/
-│   │   │   ├── pages/
-│   │   │   │   ├── LoginPage.jsx
-│   │   │   │   ├── RegisterPage.jsx
-│   │   │   │   └── __tests__/
-│   │   │   │       ├── LoginPage.test.jsx
-│   │   │   │       └── RegisterPage.test.jsx
-│   │   │   ├── services/
-│   │   │   │   └── authService.js
-│   │   │   └── utils/
-│   │   │       └── validation.js
-│   │   ├── admin/
-│   │   │   └── pages/AdminPage.jsx
-│   │   ├── pet/
-│   │   │   └── pages/PetPage.jsx
-│   │   └── home/HomePage.jsx
-│   ├── shared/
-│   │   ├── assets/logo.svg
-│   │   ├── components/
-│   │   │   ├── auth/PrivateRoute.jsx
-│   │   │   └── ui/
-│   │   │       ├── Button.jsx
-│   │   │       ├── Input.jsx
-│   │   │       ├── Header.jsx
-│   │   │       ├── Footer.jsx
-│   │   │       ├── ThemeToggle.jsx
-│   │   │       └── __tests__/
-│   │   │           ├── ThemeToggle.test.jsx
-│   │   │           └── Footer.test.jsx
-│   │   └── layout/
-│   │       ├── AppLayout.jsx
-│   │       └── CredentialsLayout.jsx
-│   ├── setupTests.js
-│   ├── index.css
-│   ├── main.jsx
-│   └── tailwind.config.js
-├── package.json
-└── vite.config.js
-```
-
----
-
-## 🎨 Tailwind (config y paleta)
-
-`tailwind.config.js` (extracto):
+### Tailwind v3 (config)
 ```js
+// tailwind.config.js
 export default {
   darkMode: 'class',
-  content: ["./index.html","./src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        'fp-primary': { 500:'#155B6D', 600:'#0F4C5C', 700:'#0B3944' },
-        'fp-mint': { 500:'#7AD9C0', 600:'#3CBFA1' },
-        'fp-warm': { 500:'#FFC857' },
-        'teal': { 100:'#CEEBD1' }
+        'fp-primary': { 500: '#155B6D', 600: '#0F4C5C', 700: '#0B3944' },
+        'fp-mint': { 500: '#7AD9C0', 600: '#3CBFA1' },
+        'fp-warm': { 500: '#FFC857' },
+        'teal': { 100: '#CEEBD1' }
       }
     }
   },
@@ -155,111 +116,114 @@ export default {
 }
 ```
 
-**Paleta base:**
+---
 
-| Nombre | Hex | Uso |
-|---|---|---|
-| `fp-primary-600` | `#0F4C5C` | Primario |
-| `fp-mint-500` | `#7AD9C0` | Acento |
-| `fp-warm-500` | `#FFC857` | Avisos / CTA |
-| `teal-100` | `#CEEBD1` | Fondos suaves |
+## 🔑 Variables de entorno
+
+**`.env`**
+```bash
+VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+> Ajusta el origen CORS del backend a `http://localhost:5173`.
 
 ---
 
-## 🔐 Autenticación (frontend)
-
-`authService.js` (resumen):
-```js
-export const login = async (email, password) => { /* POST /auth/token */ }
-export const register = async (email, password) => { /* POST /auth/registro */ }
-export const saveToken = (t) => localStorage.setItem('token', t)
-export const getToken = () => localStorage.getItem('token')
-export const removeToken = () => localStorage.removeItem('token')
-export const isAuthenticated = () => !!getToken()
-```
-
-Rutas protegidas:
-```jsx
-// router.jsx
-{
-  path: '/admin',
-  element: <PrivateRoute><AdminPage/></PrivateRoute>
-}
-```
-
----
-
-## 🧪 Tests
-
-**Stack:** Vitest + React Testing Library
+## 🧰 Scripts
 
 ```bash
-npm run test
-```
-
-- **RegisterPage.test.jsx** → 8/8 tests (validaciones granulares).
-- **LoginPage.test.jsx** → flujo básico y almacenamiento de token.
-- **ThemeToggle.test.jsx** → toggle con `matchMedia` mock global en `setupTests.js`.
-- **Pendientes** → Header, Footer (parcial), HomePage, Router.
-
-`setupTests.js` (extracto):
-```js
-import { vi } from 'vitest'
-if (!window.matchMedia) {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation(q => ({
-      matches:false, media:q,
-      addListener:vi.fn(), removeListener:vi.fn(),
-      addEventListener:vi.fn(), removeEventListener:vi.fn(),
-      dispatchEvent:vi.fn()
-    }))
-  })
-}
+npm run dev        # desarrollo
+npm run build      # build producción
+npm run preview    # previsualizar build
+npm run test:unit  # tests con Vitest
+npm run lint       # ESLint
 ```
 
 ---
 
-## 🧭 Roadmap corto (próximas horas)
+## 🗂 Estructura
 
-1) **Arreglar Dark Mode**  
-   - Añadir `dark:` en Header, Footer, Inputs, Cards, Home.
-
-2) **Rutas protegidas completas**  
-   - Integrar `PrivateRoute` en `/mascotas` y demás.
-
-3) **HU2: CRUD Mascotas (Frontend)**  
-   - `PetPage` con listado y formulario (create/update/delete).  
-   - Tests de componentes y servicios.
-
-4) **Tests faltantes**  
-   - Header, Footer, HomePage, Router.
-
----
-
-## 🧱 Convenciones del proyecto
-
-- **Código:** `camelCase`  
-- **Tests (nombres de métodos):** `snake_case`  
-- **Principios:** **DRY**, **KISS**, **SOLID**, **YAGNI**  
-- **Commits:** **Conventional Commits** (`feat:`, `fix:`, `test:`, `refactor:`, `chore:`, `docs:`)
-
----
-
-## 🧷 Notas útiles
-
-- **Backend base URL:** `http://localhost:8080/api/v1`
-- **Auth endpoints:**  
-  - `POST /auth/registro`  
-  - `POST /auth/token`
-- **JWT:** guardado en `localStorage` como `token`.
+```
+src/
+├── app/
+│   └── routes/router.jsx
+├── features/
+│   ├── auth/
+│   │   ├── pages/{LoginPage.jsx, RegisterPage.jsx}
+│   │   ├── services/authService.js
+│   │   └── utils/validation.js
+│   ├── pet/
+│   │   ├── pages/PetPage.jsx   # HU4 (listado+filtros+modal)
+│   │   └── services/petService.js
+│   └── home/pages/HomePage.jsx
+├── shared/
+│   ├── components/ui/{Button.jsx, Input.jsx, ThemeToggle.jsx, Header.jsx, Footer.jsx}
+│   ├── components/auth/PrivateRoute.jsx
+│   └── assets/logo.svg
+├── index.css
+└── main.jsx
+```
 
 ---
 
-## 👩‍💻 Créditos / Disclaimer
+## 🔗 Integración con Backend
 
-Proyecto académico del bootcamp. Uso educativo, sin garantías.  
-Frontend: **FitPet (v1 entrega)**.  
-Autora: **Marisol Mancera**.
+- **Base URL:** `http://localhost:8080/api/v1`
+- **Auth**
+  - `POST /auth/registro` — registro
+  - `POST /auth/login` — **201** con `{ tokenType, expiresIn, accessToken }`
+- **Pets**
+  - `GET /pets` — lista del usuario
+  - `GET /pets?species=Dog|Cat|Bird|Other` — filtro
+  - `GET /pets/{id}` — detalle
+  - `POST /pets` — crear
+  - `PUT /pets/{id}` — actualizar
+  - `DELETE /pets/{id}` — eliminar
 
---- 
+### HU4 – `PetPage.jsx` (implementación)
+- Carga desde API con `listPets(filtroEspecie)`
+- Botones de filtro: **Todas/Perros/Gatos/Aves/Otros**
+- **Modal de detalle** con `getPetById(id)`
+- El filtro **se mantiene** al cerrar el modal
+- Manejo de estados `loading`/`error` + fallback de sesión expirada (redirige a `/login`)
+
+---
+
+## 🧪 Pruebas
+
+- **Vitest + React Testing Library**
+- Tests existentes:
+  - `RegisterPage.test.jsx` — **8/8** (validación granular )
+  - `LoginPage.test.jsx` — **9** 
+  - `validation.test.js` — **~25** casos (email/password)
+ 
+```bash
+npm run test:unit
+```
+
+---
+
+## 🎨 UI
+
+- **Tailwind v3** — sin CSS variables; todo con utilidades.
+- Header/ Footer rediseñados (estilo **Margarita**).
+- Grid **2×2** asimétrico en Home.
+- **Dark mode** con `ThemeToggle` (pendiente agregar `dark:` en todos los componentes).
+
+---
+
+## 🛣 Roadmap UI
+
+- Completar `dark:` en todos los componentes.
+- Página **Admin** (perfil/ajustes).
+- Formulario **Create/Edit Pet** (HU5).
+- Estado global (Pinia/Redux/Context) si escala.
+- Accesibilidad (focus states, ARIA).
+
+---
+
+## 👩‍💻 Créditos
+
+Frontend: **Marisol Mancera Villarejo**  
+Proyecto académico — Bootcamp
+
